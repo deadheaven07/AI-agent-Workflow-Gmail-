@@ -1,6 +1,7 @@
 """
 Main Streamlit Dashboard for the 3-Agent Personal Executive Suite.
-Light Mode UI with animated agent status badges, real-time analytics, and 1-click execution.
+Modern, high-end Light Mode UI with animated glowing agent indicators,
+glassmorphic stat cards, interactive filters, and one-click execution.
 """
 
 from datetime import datetime
@@ -13,303 +14,397 @@ from agents.stock_agent import StockAgent
 from agents.freelance_agent import FreelanceAgent
 from notifications.telegram_bot import send_executive_alert
 
-# --- Page Configuration ---
+# --- Streamlit Page Configuration ---
 st.set_page_config(
-    page_title="Executive Suite | 3-Agent AI Dashboard",
+    page_title="Executive Suite | Autonomous 3-Agent AI",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# --- Custom Light Mode CSS & Animation Styles ---
+# --- Modern, High-End Light Mode CSS Design System ---
 st.markdown(
     """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700&display=swap');
 
-    /* Global Light Theme Overrides */
+    /* Clean Streamlit Overrides */
+    #MainMenu, footer { visibility: hidden; }
+    header[data-testid="stHeader"] { background: transparent !important; }
+
+    /* Global Typography & Light Palette */
     html, body, [class*="css"], .stApp {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
-        background-color: #F8F9FA !important;
-        color: #212529 !important;
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        background-color: #F8FAFC !important;
+        color: #0F172A !important;
     }
 
-    /* Main container padding */
+    /* Main Container Padding */
     .block-container {
-        padding-top: 1.8rem;
-        padding-bottom: 3rem;
-        max-width: 1300px;
+        padding-top: 1.2rem !important;
+        padding-bottom: 3.5rem !important;
+        max-width: 1340px !important;
     }
 
-    /* Top Header */
-    .executive-header {
-        background: linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%);
+    /* Top Executive Banner */
+    .hero-banner {
+        background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 50%, #F1F5F9 100%);
         border: 1px solid #E2E8F0;
-        border-radius: 16px;
-        padding: 24px 32px;
+        border-radius: 18px;
+        padding: 24px 30px;
         margin-bottom: 24px;
-        box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
         display: flex;
-        align-items: center;
         justify-content: space-between;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
     }
-    .executive-title {
-        font-size: 26px;
+    .hero-banner::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background: linear-gradient(180deg, #2563EB 0%, #38BDF8 100%);
+    }
+    .hero-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 27px;
         font-weight: 700;
         color: #0F172A;
+        letter-spacing: -0.5px;
         margin: 0;
         display: flex;
         align-items: center;
         gap: 12px;
     }
-    .executive-subtitle {
+    .hero-desc {
         color: #64748B;
         font-size: 14px;
-        margin-top: 4px;
+        margin-top: 5px;
         margin-bottom: 0;
+        font-weight: 400;
+    }
+    .hero-badge-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 6px;
+    }
+    .system-badge {
+        background: #ECFDF5;
+        border: 1px solid #A7F3D0;
+        color: #065F46;
+        padding: 6px 14px;
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 2px 6px rgba(16, 185, 129, 0.12);
     }
 
     /* Sidebar Styling */
     section[data-testid="stSidebar"] {
         background-color: #FFFFFF !important;
         border-right: 1px solid #E2E8F0 !important;
-        padding-top: 1.5rem;
+        box-shadow: 4px 0 20px rgba(0, 0, 0, 0.02) !important;
+        padding-top: 1rem !important;
     }
 
-    /* Animated Agent Status Cards in Sidebar */
-    .agent-status-card {
-        background: #FFFFFF;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        padding: 14px 16px;
-        margin-bottom: 14px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-    }
-    .agent-status-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
-    }
-    .agent-card-header {
+    /* Sidebar Brand Box */
+    .sidebar-brand {
+        padding: 12px 14px;
+        background: linear-gradient(135deg, #EFF6FF 0%, #F8FAFC 100%);
+        border: 1px solid #DBEAFE;
+        border-radius: 14px;
+        margin-bottom: 22px;
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        margin-bottom: 6px;
+        gap: 12px;
     }
-    .agent-name {
-        font-weight: 600;
+    .brand-icon {
+        width: 36px;
+        height: 36px;
+        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+        color: white;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        font-weight: 700;
+        box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+    }
+
+    /* Animated Sidebar Agent Status Cards */
+    .agent-nav-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        position: relative;
+    }
+    .agent-nav-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.08);
+        border-color: #CBD5E1;
+    }
+    .agent-nav-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+    .agent-nav-title {
+        font-weight: 700;
         font-size: 14px;
-        color: #1E293B;
+        color: #0F172A;
         display: flex;
         align-items: center;
         gap: 8px;
     }
-    .agent-meta {
-        font-size: 11px;
+    .agent-nav-desc {
+        font-size: 11.5px;
         color: #64748B;
-        margin-top: 4px;
+        line-height: 1.4;
     }
 
-    /* Glowing Pulse Animations */
-    .pulse-dot {
-        width: 10px;
-        height: 10px;
+    /* Radar Pulsing Rings */
+    .radar-dot {
+        width: 9px;
+        height: 9px;
         border-radius: 50%;
         display: inline-block;
         position: relative;
     }
-    .pulse-green {
-        background-color: #10B981;
+    .radar-blue {
+        background: #2563EB;
+        box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.7);
+        animation: radar-pulse-blue 2.2s infinite;
+    }
+    .radar-green {
+        background: #10B981;
         box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
-        animation: pulse-green-anim 2s infinite cubic-bezier(0.45, 0, 0.55, 1);
+        animation: radar-pulse-green 2.2s infinite;
     }
-    .pulse-blue {
-        background-color: #3B82F6;
-        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
-        animation: pulse-blue-anim 2s infinite cubic-bezier(0.45, 0, 0.55, 1);
-    }
-    .pulse-amber {
-        background-color: #F59E0B;
+    .radar-amber {
+        background: #F59E0B;
         box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
-        animation: pulse-amber-anim 2s infinite cubic-bezier(0.45, 0, 0.55, 1);
+        animation: radar-pulse-amber 2.2s infinite;
     }
 
-    @keyframes pulse-green-anim {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-        70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+    @keyframes radar-pulse-blue {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.6); }
+        70% { transform: scale(1); box-shadow: 0 0 0 9px rgba(37, 99, 235, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(37, 99, 235, 0); }
+    }
+    @keyframes radar-pulse-green {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.6); }
+        70% { transform: scale(1); box-shadow: 0 0 0 9px rgba(16, 185, 129, 0); }
         100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
     }
-    @keyframes pulse-blue-anim {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
-        70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
-        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
-    }
-    @keyframes pulse-amber-anim {
-        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
-        70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+    @keyframes radar-pulse-amber {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6); }
+        70% { transform: scale(1); box-shadow: 0 0 0 9px rgba(245, 158, 11, 0); }
         100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
     }
 
-    /* Badges */
-    .status-badge {
+    /* Status Badges */
+    .badge-pill {
         font-size: 11px;
-        font-weight: 600;
-        padding: 3px 8px;
+        font-weight: 700;
+        padding: 3px 9px;
         border-radius: 9999px;
         display: inline-flex;
         align-items: center;
         gap: 6px;
     }
-    .badge-active-green {
-        background-color: #ECFDF5;
-        color: #065F46;
-        border: 1px solid #A7F3D0;
-    }
-    .badge-active-blue {
-        background-color: #EFF6FF;
-        color: #1E40AF;
-        border: 1px solid #BFDBFE;
-    }
-    .badge-active-amber {
-        background-color: #FFFBEB;
-        color: #92400E;
-        border: 1px solid #FDE68A;
-    }
+    .badge-blue { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+    .badge-green { background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0; }
+    .badge-amber { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; }
 
-    /* Content Cards */
-    .content-card {
+    /* Executive KPI Metric Cards */
+    .kpi-card {
         background: #FFFFFF;
         border: 1px solid #E2E8F0;
-        border-radius: 14px;
-        padding: 20px;
-        margin-bottom: 18px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
-        transition: border-color 0.2s ease;
+        border-radius: 16px;
+        padding: 20px 22px;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-    .content-card:hover {
-        border-color: #CBD5E1;
+    .kpi-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px -4px rgba(15, 23, 42, 0.06);
     }
+    .kpi-accent-blue::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #3B82F6; }
+    .kpi-accent-green::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #10B981; }
+    .kpi-accent-purple::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #8B5CF6; }
+    .kpi-accent-amber::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: #F59E0B; }
 
-    /* Stat Cards */
-    .metric-container {
-        background: #FFFFFF;
-        border: 1px solid #E2E8F0;
-        border-radius: 12px;
-        padding: 16px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
-    }
-    .metric-label {
+    .kpi-label {
         font-size: 12px;
+        font-weight: 700;
         color: #64748B;
-        font-weight: 500;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 0.6px;
     }
-    .metric-value {
-        font-size: 24px;
+    .kpi-number {
+        font-family: 'Outfit', sans-serif;
+        font-size: 28px;
         font-weight: 700;
         color: #0F172A;
-        margin-top: 4px;
+        margin-top: 6px;
+        letter-spacing: -0.5px;
     }
-    .metric-delta-pos {
-        color: #10B981;
-        font-size: 13px;
-        font-weight: 600;
-        display: inline-flex;
+    .kpi-subtext {
+        font-size: 12.5px;
+        margin-top: 6px;
+        color: #64748B;
+        display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 6px;
     }
-    .metric-delta-neg {
-        color: #EF4444;
-        font-size: 13px;
-        font-weight: 600;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
+    .kpi-gain { color: #059669; font-weight: 700; }
+    .kpi-loss { color: #DC2626; font-weight: 700; }
+
+    /* Modern Card Layouts */
+    .dashboard-card {
+        background: #FFFFFF;
+        border: 1px solid #E2E8F0;
+        border-radius: 16px;
+        padding: 22px 24px;
+        margin-bottom: 18px;
+        box-shadow: 0 2px 12px rgba(15, 23, 42, 0.03);
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .dashboard-card:hover {
+        border-color: #CBD5E1;
+        box-shadow: 0 6px 20px -2px rgba(15, 23, 42, 0.06);
     }
 
     /* Tag Pills */
-    .pill {
-        display: inline-block;
-        padding: 2px 9px;
-        font-size: 11px;
-        font-weight: 500;
-        border-radius: 6px;
-        margin-right: 6px;
-        margin-top: 4px;
-    }
-    .pill-urgent { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
-    .pill-important { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
-    .pill-low { background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0; }
-    .pill-skill { background: #F0FDF4; color: #166534; border: 1px solid #BBF7D0; }
-    .pill-score { background: #EDE9FE; color: #5B21B6; font-weight: 700; border: 1px solid #DDD6FE; }
-
-    /* Action Box */
-    .action-box {
-        background: #F8FAFC;
-        border-left: 4px solid #3B82F6;
-        padding: 12px 16px;
-        border-radius: 0 8px 8px 0;
-        margin: 12px 0;
-        font-size: 13px;
-    }
-
-    /* Proposal Box */
-    .proposal-box {
-        background: #FAF5FF;
-        border: 1px solid #E9D5FF;
-        border-radius: 10px;
-        padding: 14px;
-        font-size: 13px;
-        color: #3B0764;
-        margin-top: 10px;
-        line-height: 1.5;
-        white-space: pre-wrap;
-    }
-
-    /* Tabs Styling */
-    .stTabs [data-baseweb="tab-list"] {
-        gap: 8px;
-        background-color: transparent;
-        border-bottom: 2px solid #E2E8F0;
-        padding-bottom: 2px;
-    }
-    .stTabs [data-baseweb="tab"] {
-        border-radius: 8px 8px 0 0;
-        padding: 10px 18px;
-        font-weight: 600;
-        color: #64748B;
-        background-color: transparent;
-        border: none;
-    }
-    .stTabs [aria-selected="true"] {
-        color: #1E293B !important;
-        border-bottom: 2px solid #2563EB !important;
-        background-color: #FFFFFF !important;
-    }
-
-    /* Streamlit Button Styling */
-    div.stButton > button:first-child {
-        background-color: #2563EB;
-        color: white;
-        border: none;
-        padding: 10px 20px;
+    .pill-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        font-size: 11.5px;
         font-weight: 600;
         border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
-        transition: all 0.2s ease;
+        margin-right: 6px;
+        margin-bottom: 6px;
+    }
+    .pill-urgent { background: #FEF2F2; color: #991B1B; border: 1px solid #FCA5A5; }
+    .pill-important { background: #FFFBEB; color: #92400E; border: 1px solid #FCD34D; }
+    .pill-low { background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0; }
+    .pill-roi-top { background: #ECFDF5; color: #065F46; border: 1px solid #6EE7B7; font-weight: 800; }
+    .pill-roi-good { background: #FFFBEB; color: #92400E; border: 1px solid #FDE68A; font-weight: 700; }
+    .pill-skill { background: #F0FDF4; color: #15803D; border: 1px solid #BBF7D0; }
+    .pill-budget { background: #F0FDF4; color: #166534; font-weight: 700; border: 1px solid #86EFAC; }
+
+    /* Progress bar for skill match */
+    .match-bar-bg {
+        width: 100px;
+        height: 7px;
+        background-color: #E2E8F0;
+        border-radius: 9999px;
+        overflow: hidden;
+        display: inline-block;
+        vertical-align: middle;
+        margin-left: 6px;
+    }
+    .match-bar-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #3B82F6 0%, #10B981 100%);
+        border-radius: 9999px;
+    }
+
+    /* Action Checklist Box */
+    .action-checklist {
+        background: #F8FAFC;
+        border-left: 4px solid #2563EB;
+        border-radius: 0 10px 10px 0;
+        padding: 12px 18px;
+        margin: 14px 0 10px 0;
+        font-size: 13px;
+        color: #1E293B;
+    }
+
+    /* Signal Callout Boxes */
+    .signal-box-profit {
+        background: linear-gradient(135deg, #F0FDF4 0%, #FFFFFF 100%);
+        border: 1px solid #BBF7D0;
+        border-left: 5px solid #10B981;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 14px;
+    }
+    .signal-box-risk {
+        background: linear-gradient(135deg, #FFFBEB 0%, #FFFFFF 100%);
+        border: 1px solid #FDE68A;
+        border-left: 5px solid #F59E0B;
+        border-radius: 12px;
+        padding: 16px 20px;
+        margin-bottom: 14px;
+    }
+
+    /* Streamlit Tab Buttons Enhancement */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 12px;
+        background: #F1F5F9;
+        padding: 6px;
+        border-radius: 12px;
+        border: 1px solid #E2E8F0;
+        margin-bottom: 22px;
+    }
+    .stTabs [data-baseweb="tab"] {
+        border-radius: 8px !important;
+        padding: 10px 22px !important;
+        font-weight: 600 !important;
+        font-size: 14px !important;
+        color: #64748B !important;
+        background-color: transparent !important;
+        border: none !important;
+        transition: all 0.2s ease !important;
+    }
+    .stTabs [aria-selected="true"] {
+        color: #0F172A !important;
+        background-color: #FFFFFF !important;
+        box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08) !important;
+    }
+
+    /* Primary Action Buttons */
+    div.stButton > button:first-child {
+        background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+        color: #FFFFFF !important;
+        border: none !important;
+        padding: 12px 24px !important;
+        font-weight: 700 !important;
+        font-size: 14px !important;
+        border-radius: 10px !important;
+        box-shadow: 0 4px 14px rgba(37, 99, 235, 0.28) !important;
+        transition: all 0.2s ease !important;
     }
     div.stButton > button:first-child:hover {
-        background-color: #1D4ED8;
-        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.35);
-        transform: translateY(-1px);
+        background: linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%) !important;
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4) !important;
+        transform: translateY(-1px) !important;
     }
     </style>
     """,
     unsafe_allow_html=True,
 )
 
-# --- Initialize Session State Data ---
+# --- State Management ---
 if "emails" not in st.session_state:
     st.session_state.emails = None
 if "portfolio" not in st.session_state:
@@ -320,9 +415,9 @@ if "last_scanned" not in st.session_state:
     st.session_state.last_scanned = datetime.now().strftime("%I:%M %p")
 
 
-def run_agents():
-    """Trigger all agents and update state."""
-    with st.spinner("🤖 Autonomous Agents scanning emails, market data, and job feeds..."):
+def trigger_agent_scan():
+    """Executes all 3 background agents and caches results."""
+    with st.spinner("⚡ Autonomous Agents synchronizing market data, RSS feeds, and inbox..."):
         email_agent = EmailAgent()
         stock_agent = StockAgent()
         freelance_agent = FreelanceAgent()
@@ -332,247 +427,266 @@ def run_agents():
         st.session_state.jobs = freelance_agent.get_evaluated_jobs()
         st.session_state.last_scanned = datetime.now().strftime("%I:%M %p")
 
-        # Also trigger telegram alert
-        urgent_emails = [e for e in st.session_state.emails if e.get("priority") in ("URGENT", "IMPORTANT")]
-        stock_alerts = st.session_state.portfolio.get("alerts", [])
-        top_jobs = [j for j in st.session_state.jobs if j.get("roi_score", 0) >= 8.0]
+        # Telegram notification
+        urgent = [e for e in st.session_state.emails if e.get("priority") in ("URGENT", "IMPORTANT")]
+        stk_alerts = st.session_state.portfolio.get("alerts", [])
+        top_gigs = [j for j in st.session_state.jobs if j.get("roi_score", 0) >= 8.0]
 
         send_executive_alert(
-            email_alerts=urgent_emails,
-            stock_alerts=stock_alerts,
-            job_alerts=top_jobs,
+            email_alerts=urgent,
+            stock_alerts=stk_alerts,
+            job_alerts=top_gigs,
         )
 
 
-# Run automatically once on first boot if unpopulated
+# Initial load
 if st.session_state.emails is None:
-    run_agents()
+    trigger_agent_scan()
 
 
-# ==========================================
-# 📌 SIDEBAR: Animated Agent Status Panel
-# ==========================================
+# ====================================================
+# 📌 SIDEBAR: Animated Agent Status & Controls
+# ====================================================
 with st.sidebar:
+    # Sidebar Header
     st.markdown(
         """
-        <div style="margin-bottom: 20px;">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 24px;">⚡</span>
-                <div>
-                    <h3 style="margin: 0; font-size: 17px; font-weight: 700; color: #0F172A;">Personal Executive</h3>
-                    <p style="margin: 0; font-size: 11px; color: #64748B;">Multi-Agent AI Suite (100% Free)</p>
-                </div>
+        <div class="sidebar-brand">
+            <div class="brand-icon">⚡</div>
+            <div>
+                <div style="font-weight: 800; font-size: 15px; color: #0F172A; letter-spacing: -0.3px;">EXECUTIVE SUITE</div>
+                <div style="font-size: 11px; color: #64748B; font-weight: 500;">Multi-Agent AI Controller</div>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    st.markdown("#### **Active AI Agents**")
+    st.markdown("<p style='font-size: 11.5px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #94A3B8; margin-bottom: 10px;'>Live Autonomous Agents</p>", unsafe_allow_html=True)
 
-    # Agent 1: Email Triage
+    # 1. Email Agent Nav Card
     st.markdown(
         """
-        <div class="agent-status-card">
-            <div class="agent-card-header">
-                <div class="agent-name">
-                    <span>📩</span> Email Triage Agent
+        <div class="agent-nav-card">
+            <div class="agent-nav-header">
+                <div class="agent-nav-title">
+                    <span>📩</span> Email Triage
                 </div>
-                <div class="status-badge badge-active-blue">
-                    <span class="pulse-dot pulse-blue"></span> Scanning
-                </div>
+                <span class="badge-pill badge-blue">
+                    <span class="radar-dot radar-blue"></span> SCANNING
+                </span>
             </div>
-            <div class="agent-meta">Provider: Gmail IMAP + Gemini AI</div>
+            <div class="agent-nav-desc">
+                Gmail IMAP • Gemini AI Priority Categorization & Auto-Drafter
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # Agent 2: Stock & Portfolio
+    # 2. Stock Agent Nav Card
     st.markdown(
         """
-        <div class="agent-status-card">
-            <div class="agent-card-header">
-                <div class="agent-name">
-                    <span>📈</span> Stock & Portfolio Agent
+        <div class="agent-nav-card">
+            <div class="agent-nav-header">
+                <div class="agent-nav-title">
+                    <span>📈</span> Stock & Portfolio
                 </div>
-                <div class="status-badge badge-active-green">
-                    <span class="pulse-dot pulse-green"></span> Monitoring
-                </div>
+                <span class="badge-pill badge-green">
+                    <span class="radar-dot radar-green"></span> MONITORING
+                </span>
             </div>
-            <div class="agent-meta">Provider: yfinance + Gemini Signals</div>
+            <div class="agent-nav-desc">
+                yfinance Live Data • +15% Take-Profit & Gemini Risk Signals
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    # Agent 3: Freelance Job Hunter
+    # 3. Freelance Agent Nav Card
     st.markdown(
         """
-        <div class="agent-status-card">
-            <div class="agent-card-header">
-                <div class="agent-name">
-                    <span>💼</span> Freelance Job Hunter
+        <div class="agent-nav-card">
+            <div class="agent-nav-header">
+                <div class="agent-nav-title">
+                    <span>💼</span> Job Hunter
                 </div>
-                <div class="status-badge badge-active-amber">
-                    <span class="pulse-dot pulse-amber"></span> Searching
-                </div>
+                <span class="badge-pill badge-amber">
+                    <span class="radar-dot radar-amber"></span> SEARCHING
+                </span>
             </div>
-            <div class="agent-meta">Provider: RemoteOK, WWR + Gemini ROI</div>
+            <div class="agent-nav-desc">
+                RemoteOK & WWR • Gemini ROI Scorer (1-10) & Proposal Writer
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    st.markdown("<hr style='border: 0; border-top: 1px solid #E2E8F0; margin: 18px 0;'>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
-    # Manual Run Button
+    # Main Action Button
     if st.button("🚀 Run All Agents Now", use_container_width=True):
-        run_agents()
-        st.toast("All 3 agents successfully executed and refreshed!", icon="✅")
+        trigger_agent_scan()
+        st.toast("All 3 agents successfully scanned and updated!", icon="⚡")
 
-    st.markdown(f"<p style='text-align: center; font-size: 11px; color: #94A3B8; margin-top: 10px;'>Last scanned: {st.session_state.last_scanned}</p>", unsafe_allow_html=True)
+    st.markdown(f"<p style='text-align: center; font-size: 11px; color: #94A3B8; margin-top: 10px;'>Last cycle: <b>{st.session_state.last_scanned}</b></p>", unsafe_allow_html=True)
 
-    # Integration Status Pill Box
-    with st.expander("⚙️ System Status & Secrets", expanded=False):
-        g_status = "🟢 Connected" if config.is_gemini_configured() else "🟡 Mock / Demo"
-        t_status = "🟢 Active" if config.is_telegram_configured() else "🟡 Mock / Demo"
-        m_status = "🟢 Connected" if config.is_email_configured() else "🟡 Mock / Demo"
+    # Sidebar Expandable Settings
+    with st.expander("🛠️ Connection Telemetry", expanded=False):
+        g_badge = "🟢 Configured" if config.is_gemini_configured() else "🟡 Mock Sandbox"
+        t_badge = "🟢 Connected" if config.is_telegram_configured() else "🟡 Mock Sandbox"
+        m_badge = "🟢 Connected" if config.is_email_configured() else "🟡 Mock Sandbox"
 
-        st.markdown(f"**Gemini LLM:** {g_status}")
-        st.caption(f"Model: `{config.GEMINI_MODEL}`")
-        st.markdown(f"**Telegram Alerts:** {t_status}")
-        st.markdown(f"**Gmail IMAP:** {m_status}")
+        st.markdown(f"**Gemini Model:** `{config.GEMINI_MODEL}` ({g_badge})")
+        st.markdown(f"**Telegram Bot:** {t_badge}")
+        st.markdown(f"**Gmail IMAP:** {m_badge}")
+        st.caption("Edit `.env` to switch from Sandbox mocks to your personal live credentials.")
 
 
-# ==========================================
+# ====================================================
 # 👑 MAIN CONTENT: Executive Dashboard
-# ==========================================
+# ====================================================
 
-# Top Greeting Header
+# Top Hero Header
 st.markdown(
     f"""
-    <div class="executive-header">
+    <div class="hero-banner">
         <div>
-            <h1 class="executive-title">Personal Executive Suite</h1>
-            <p class="executive-subtitle">Autonomous multi-agent intelligence for high-value freelance bids, equity positions, and inbox triage.</p>
+            <h1 class="hero-title">Personal Executive Suite</h1>
+            <p class="hero-desc">Continuous intelligence across freelance job markets, portfolio risk, and inbox triage.</p>
         </div>
-        <div style="text-align: right;">
-            <div style="font-size: 12px; color: #64748B; font-weight: 500;">AUTONOMOUS STATUS</div>
-            <div style="font-size: 14px; font-weight: 700; color: #10B981; display: flex; align-items: center; justify-content: flex-end; gap: 6px;">
-                <span class="pulse-dot pulse-green"></span> 3 / 3 AGENTS ONLINE
+        <div class="hero-badge-container">
+            <div class="system-badge">
+                <span class="radar-dot radar-green"></span> 3 / 3 AGENTS OPERATIONAL
             </div>
+            <span style="font-size: 11.5px; color: #94A3B8;">Cron Interval: Hourly (GitHub Actions)</span>
         </div>
     </div>
     """,
     unsafe_allow_html=True,
 )
 
-# Main Navigation Tabs
-tab_freelance, tab_stocks, tab_emails = st.tabs([
+# Navigation Tabs
+tab_jobs, tab_stocks, tab_emails = st.tabs([
     "💼  Freelance Opportunities",
     "📈  Stock & Portfolio Intelligence",
     "📩  Email Triage & Digest",
 ])
 
 
-# ==========================================
+# ====================================================
 # 💼 TAB 1: Freelance Opportunities
-# ==========================================
-with tab_freelance:
+# ====================================================
+with tab_jobs:
     jobs = st.session_state.jobs or []
-    high_roi_count = len([j for j in jobs if j.get("roi_score", 0) >= 8.0])
+    high_roi_jobs = [j for j in jobs if j.get("roi_score", 0) >= 8.0]
+    avg_match = int(sum(j.get("skill_match_pct", 0) for j in jobs) / max(1, len(jobs)))
 
-    col1, col2, col3 = st.columns(3)
-    with col1:
+    # KPI Top Bar
+    k1, k2, k3, k4 = st.columns(4)
+    with k1:
         st.markdown(
             f"""
-            <div class="metric-container">
-                <div class="metric-label">Discovered Opportunities</div>
-                <div class="metric-value">{len(jobs)}</div>
-                <div style="font-size: 12px; color: #64748B; margin-top: 4px;">Across RemoteOK & WeWorkRemotely</div>
+            <div class="kpi-card kpi-accent-blue">
+                <div class="kpi-label">Discovered Leads</div>
+                <div class="kpi-number">{len(jobs)}</div>
+                <div class="kpi-subtext">Across RemoteOK & WWR</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-    with col2:
+    with k2:
         st.markdown(
             f"""
-            <div class="metric-container">
-                <div class="metric-label">High-ROI Leads (≥ 8.0)</div>
-                <div class="metric-value" style="color: #7C3AED;">{high_roi_count}</div>
-                <div style="font-size: 12px; color: #10B981; margin-top: 4px;">⚡ Ready-to-Send Proposals Drafted</div>
+            <div class="kpi-card kpi-accent-purple">
+                <div class="kpi-label">High-ROI Gigs (≥ 8.0)</div>
+                <div class="kpi-number" style="color: #7C3AED;">{len(high_roi_jobs)}</div>
+                <div class="kpi-subtext"><span class="kpi-gain">● Proposals Auto-Drafted</span></div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-    with col3:
-        skills_summary = ", ".join(config.USER_SKILLS[:3]) + "..."
+    with k3:
         st.markdown(
             f"""
-            <div class="metric-container">
-                <div class="metric-label">Target Skillset</div>
-                <div class="metric-value" style="font-size: 16px; margin-top: 8px; font-weight: 600;">{skills_summary}</div>
-                <div style="font-size: 12px; color: #64748B; margin-top: 6px;">Configured in <code>.env</code></div>
+            <div class="kpi-card kpi-accent-green">
+                <div class="kpi-label">Average Match</div>
+                <div class="kpi-number" style="color: #059669;">{avg_match}%</div>
+                <div class="kpi-subtext">Target: {len(config.USER_SKILLS)} Core Competencies</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with k4:
+        st.markdown(
+            f"""
+            <div class="kpi-card kpi-accent-amber">
+                <div class="kpi-label">Top Skill Demand</div>
+                <div class="kpi-number" style="font-size: 22px; margin-top: 10px;">Python / AI</div>
+                <div class="kpi-subtext">High Hourly Rate Premium</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-    st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
 
-    # Render each job card
+    # Job Cards Listing
     for job in jobs:
         roi = job.get("roi_score", 0.0)
         match_pct = job.get("skill_match_pct", 0)
-        title = job.get("title", "Job Posting")
-        budget = job.get("budget", "Competitive")
+        title = job.get("title", "Job Title")
         source = job.get("source", "Remote")
-        link = job.get("link", "#")
+        budget = job.get("budget", "Competitive / Inquire")
         summary = job.get("summary", "")
+        link = job.get("link", "#")
         proposal = job.get("proposal", "")
-        skills_detected = job.get("skills_detected", [])
+        detected_skills = job.get("skills_detected", [])
 
-        # Color-code ROI badge
-        roi_style = "background: #ECFDF5; color: #065F46; border: 1px solid #A7F3D0;" if roi >= 8.0 else "background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A;"
-
-        skills_pills_html = "".join([f'<span class="pill pill-skill">{s}</span>' for s in skills_detected])
+        # Pill styling
+        roi_badge = f'<span class="pill-badge pill-roi-top">⚡ ROI {roi}/10 • HIGH PRIORITY</span>' if roi >= 8.0 else f'<span class="pill-badge pill-roi-good">ROI {roi}/10</span>'
+        skills_html = "".join([f'<span class="pill-badge pill-skill">{s}</span>' for s in detected_skills])
 
         st.markdown(
             f"""
-            <div class="content-card">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
+            <div class="dashboard-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 8px;">
                     <div>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 6px;">
-                            <span class="pill pill-score" style="{roi_style}">⚡ ROI {roi}/10</span>
-                            <span class="pill pill-low">{source}</span>
-                            <span class="pill" style="background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE;">Match {match_pct}%</span>
+                        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+                            {roi_badge}
+                            <span class="pill-badge pill-low">{source}</span>
+                            <span class="pill-badge" style="background: #EFF6FF; color: #1E40AF; border: 1px solid #BFDBFE;">
+                                Match {match_pct}%
+                                <span class="match-bar-bg"><span class="match-bar-fill" style="width: {match_pct}%;"></span></span>
+                            </span>
+                            <span class="pill-badge pill-budget">💰 {budget}</span>
                         </div>
-                        <h3 style="margin: 0 0 6px 0; font-size: 18px; font-weight: 700; color: #0F172A;">{title}</h3>
-                        <div style="font-size: 13px; font-weight: 600; color: #059669; margin-bottom: 10px;">💰 Budget: {budget}</div>
+                        <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 700; color: #0F172A; line-height: 1.35;">{title}</h3>
                     </div>
                     <a href="{link}" target="_blank" style="text-decoration: none;">
-                        <button style="background-color: #F1F5F9; color: #0F172A; border: 1px solid #CBD5E1; padding: 6px 14px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                        <button style="background: #FFFFFF; color: #0F172A; border: 1px solid #CBD5E1; padding: 7px 16px; border-radius: 8px; font-size: 12.5px; font-weight: 700; cursor: pointer; white-space: nowrap;">
                             Apply on {source} ↗
                         </button>
                     </a>
                 </div>
-                <p style="font-size: 13px; color: #475569; line-height: 1.5; margin-bottom: 10px;">{summary}</p>
-                <div>{skills_pills_html}</div>
+                <p style="font-size: 13.5px; color: #475569; line-height: 1.55; margin-bottom: 12px;">{summary}</p>
+                <div>{skills_html}</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
         if proposal:
-            with st.expander(f"📝 View Gemini AI Tailored Proposal (ROI {roi}/10)", expanded=False):
+            with st.expander(f"✨ View Gemini AI Tailored Proposal (ROI {roi}/10)", expanded=False):
                 st.code(proposal, language="markdown")
-                st.caption("Tip: You can copy this custom pitch directly into your application!")
+                st.caption("Click the copy icon on the top right of the proposal block to paste directly into your proposal!")
 
 
-# ==========================================
+# ====================================================
 # 📈 TAB 2: Stock & Portfolio Intelligence
-# ==========================================
+# ====================================================
 with tab_stocks:
     portfolio = st.session_state.portfolio or {}
     positions = portfolio.get("positions", [])
@@ -582,80 +696,78 @@ with tab_stocks:
     pnl_dollar = portfolio.get("total_pnl_dollar", 0.0)
     pnl_pct = portfolio.get("total_pnl_pct", 0.0)
 
-    # P&L Top Metrics
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
+    # Top KPI Metrics
+    s1, s2, s3, s4 = st.columns(4)
+    with s1:
         st.markdown(
             f"""
-            <div class="metric-container">
-                <div class="metric-label">Portfolio Value</div>
-                <div class="metric-value">${total_val:,.2f}</div>
-                <div style="font-size: 12px; color: #64748B; margin-top: 4px;">Live Market Value</div>
+            <div class="kpi-card kpi-accent-blue">
+                <div class="kpi-label">Portfolio Value</div>
+                <div class="kpi-number">${total_val:,.2f}</div>
+                <div class="kpi-subtext">Real-time Market Valuation</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-    with c2:
+    with s2:
         st.markdown(
             f"""
-            <div class="metric-container">
-                <div class="metric-label">Total Cost Basis</div>
-                <div class="metric-value">${total_cost:,.2f}</div>
-                <div style="font-size: 12px; color: #64748B; margin-top: 4px;">Principal Invested</div>
+            <div class="kpi-card kpi-accent-purple">
+                <div class="kpi-label">Total Cost Basis</div>
+                <div class="kpi-number">${total_cost:,.2f}</div>
+                <div class="kpi-subtext">Principal Capital Invested</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-    with c3:
-        is_pos = pnl_dollar >= 0
-        delta_class = "metric-delta-pos" if is_pos else "metric-delta-neg"
-        sign = "+" if is_pos else ""
+    with s3:
+        is_positive = pnl_dollar >= 0
+        gain_cls = "kpi-gain" if is_positive else "kpi-loss"
         st.markdown(
             f"""
-            <div class="metric-container">
-                <div class="metric-label">Unrealized P&L ($)</div>
-                <div class="metric-value {delta_class}">{sign}${pnl_dollar:,.2f}</div>
-                <div class="{delta_class}" style="margin-top: 4px;">{sign}{pnl_pct:.2f}% Return</div>
+            <div class="kpi-card kpi-accent-green">
+                <div class="kpi-label">Unrealized P&L</div>
+                <div class="kpi-number {gain_cls}">{pnl_dollar:+,.2f}</div>
+                <div class="kpi-subtext"><span class="{gain_cls}">● {pnl_pct:+.2f}% Overall Return</span></div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-    with c4:
+    with s4:
         st.markdown(
             f"""
-            <div class="metric-container">
-                <div class="metric-label">Active Signals</div>
-                <div class="metric-value" style="color: #2563EB;">{len(alerts)}</div>
-                <div style="font-size: 12px; color: #64748B; margin-top: 4px;">Take-Profit / Stop-Loss Triggers</div>
+            <div class="kpi-card kpi-accent-amber">
+                <div class="kpi-label">Active Triggers</div>
+                <div class="kpi-number" style="color: #2563EB;">{len(alerts)}</div>
+                <div class="kpi-subtext">Take-Profit & Risk Signals</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-    st.markdown("<div style='height: 18px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
 
-    # Active Triggers & Recommendations Section
+    # Active Triggers Section
     if alerts:
-        st.markdown("#### 🚨 **Active Portfolio Signals & Recommendations**")
-        for alert in alerts:
-            ticker = alert.get("ticker", "N/A")
-            signal = alert.get("signal", "ALERT")
-            action = alert.get("action", "")
-            alert_pnl = alert.get("pnl_pct", 0.0)
+        st.markdown("#### 🚨 **Active Signals & Risk Recommendations**")
+        for alt in alerts:
+            ticker = alt.get("ticker", "N/A")
+            signal = alt.get("signal", "ALERT")
+            action = alt.get("action", "")
+            alt_pnl = alt.get("pnl_pct", 0.0)
             is_profit = "PROFIT" in signal
-            border_color = "#10B981" if is_profit else "#F59E0B"
-            badge_bg = "#ECFDF5" if is_profit else "#FFFBEB"
-            badge_fg = "#065F46" if is_profit else "#92400E"
+            box_cls = "signal-box-profit" if is_profit else "signal-box-risk"
+            badge_color = "#059669" if is_profit else "#D97706"
 
             st.markdown(
                 f"""
-                <div style="background: #FFFFFF; border-left: 5px solid {border_color}; border: 1px solid #E2E8F0; border-left-width: 5px; border-radius: 10px; padding: 14px 18px; margin-bottom: 12px;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-weight: 700; font-size: 15px; color: #0F172A;">{ticker} ({alert_pnl:+.2f}%)</span>
-                        <span style="font-size: 11px; font-weight: 700; background: {badge_bg}; color: {badge_fg}; padding: 3px 8px; border-radius: 6px;">{signal}</span>
+                <div class="{box_cls}">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                        <span style="font-weight: 800; font-size: 16px; color: #0F172A;">{ticker} ({alt_pnl:+.2f}%)</span>
+                        <span style="font-size: 12px; font-weight: 800; color: {badge_color}; text-transform: uppercase;">● {signal}</span>
                     </div>
-                    <div style="margin-top: 6px; font-size: 13px; color: #334155;">
-                        <b>Recommendation:</b> {action}
+                    <div style="font-size: 13.5px; color: #334155; line-height: 1.45;">
+                        <b>Executive Directive:</b> {action}
                     </div>
                 </div>
                 """,
@@ -665,157 +777,161 @@ with tab_stocks:
     # Holdings Table
     st.markdown("#### 📊 **Current Holdings Overview**")
     if positions:
-        df_display = pd.DataFrame([
+        df = pd.DataFrame([
             {
                 "Ticker": p["ticker"],
                 "Company": p["company_name"],
-                "Qty": p["qty"],
+                "Quantity": p["qty"],
                 "Buy Price": f"${p['buy_price']:.2f}",
-                "Current": f"${p['current_price']:.2f}",
-                "Position Value": f"${p['position_value']:,.2f}",
+                "Market Price": f"${p['current_price']:.2f}",
+                "Total Value": f"${p['position_value']:,.2f}",
                 "P&L ($)": f"{p['pnl_dollar']:+,.2f}",
-                "P&L (%)": f"{p['pnl_pct']:+.2f}%",
+                "Return (%)": f"{p['pnl_pct']:+.2f}%",
                 "Div Yield": f"{p['dividend_yield']}%",
                 "Signal": p["signal"],
             }
             for p in positions
         ])
-        st.dataframe(df_display, use_container_width=True, hide_index=True)
+        st.dataframe(df, use_container_width=True, hide_index=True)
 
-    # Dividend Scanner Section
-    st.markdown("#### 💵 **High-Dividend Yield & Ex-Date Scanner**")
+    # High Dividend Radar
+    st.markdown("#### 💵 **High-Dividend Radar & Ex-Date Schedule**")
     high_divs = portfolio.get("high_dividends", [])
     if high_divs:
         div_cols = st.columns(len(high_divs))
-        for idx, div_item in enumerate(high_divs):
+        for idx, d in enumerate(high_divs):
             with div_cols[idx]:
                 st.markdown(
                     f"""
-                    <div class="content-card" style="padding: 14px;">
-                        <div style="font-size: 15px; font-weight: 700; color: #0F172A;">{div_item['ticker']}</div>
-                        <div style="font-size: 11px; color: #64748B; margin-bottom: 8px;">{div_item['name']}</div>
-                        <div style="font-size: 20px; font-weight: 700; color: #059669;">{div_item['yield_pct']}%</div>
-                        <div style="font-size: 11px; color: #475569; margin-top: 4px;">Ex-Date: <b>{div_item['ex_date']}</b></div>
+                    <div class="dashboard-card" style="padding: 16px; text-align: center;">
+                        <div style="font-size: 18px; font-weight: 800; color: #0F172A;">{d['ticker']}</div>
+                        <div style="font-size: 11px; color: #64748B; margin-bottom: 8px;">{d['name']}</div>
+                        <div style="font-size: 24px; font-weight: 800; color: #059669;">{d['yield_pct']}%</div>
+                        <div style="font-size: 11.5px; color: #475569; margin-top: 6px;">Ex-Dividend: <b>{d['ex_date']}</b></div>
                     </div>
                     """,
                     unsafe_allow_html=True,
                 )
 
 
-# ==========================================
+# ====================================================
 # 📩 TAB 3: Email Triage & Digest
-# ==========================================
+# ====================================================
 with tab_emails:
     emails = st.session_state.emails or []
-    urgent_count = len([e for e in emails if e.get("priority") == "URGENT"])
-    important_count = len([e for e in emails if e.get("priority") == "IMPORTANT"])
-    low_count = len([e for e in emails if e.get("priority") == "LOW_PRIORITY"])
+    urgent_items = [e for e in emails if e.get("priority") == "URGENT"]
+    important_items = [e for e in emails if e.get("priority") == "IMPORTANT"]
+    low_items = [e for e in emails if e.get("priority") == "LOW_PRIORITY"]
 
-    m1, m2, m3, m4 = st.columns(4)
-    with m1:
+    e1, e2, e3, e4 = st.columns(4)
+    with e1:
         st.markdown(
             f"""
-            <div class="metric-container">
-                <div class="metric-label">Unread Inbox</div>
-                <div class="metric-value">{len(emails)}</div>
-                <div style="font-size: 12px; color: #64748B; margin-top: 4px;">Triaged Messages</div>
+            <div class="kpi-card kpi-accent-blue">
+                <div class="kpi-label">Unread Inbox</div>
+                <div class="kpi-number">{len(emails)}</div>
+                <div class="kpi-subtext">Scanned via IMAP</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-    with m2:
+    with e2:
         st.markdown(
             f"""
-            <div class="metric-container">
-                <div class="metric-label">Urgent Escalations</div>
-                <div class="metric-value" style="color: #DC2626;">{urgent_count}</div>
-                <div style="font-size: 12px; color: #DC2626; margin-top: 4px;">Immediate Attention</div>
+            <div class="kpi-card kpi-accent-purple" style="border-top-color: #EF4444;">
+                <div class="kpi-label">Urgent Escalations</div>
+                <div class="kpi-number" style="color: #DC2626;">{len(urgent_items)}</div>
+                <div class="kpi-subtext"><span class="kpi-loss">● Immediate Attention</span></div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-    with m3:
+    with e3:
         st.markdown(
             f"""
-            <div class="metric-container">
-                <div class="metric-label">Important Inquiries</div>
-                <div class="metric-value" style="color: #D97706;">{important_count}</div>
-                <div style="font-size: 12px; color: #D97706; margin-top: 4px;">Follow-ups Required</div>
+            <div class="kpi-card kpi-accent-amber">
+                <div class="kpi-label">Important Inquiries</div>
+                <div class="kpi-number" style="color: #D97706;">{len(important_items)}</div>
+                <div class="kpi-subtext">Meeting & Contract Requests</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
-    with m4:
+    with e4:
         st.markdown(
             f"""
-            <div class="metric-container">
-                <div class="metric-label">Low Priority / News</div>
-                <div class="metric-value" style="color: #64748B;">{low_count}</div>
-                <div style="font-size: 12px; color: #64748B; margin-top: 4px;">Automated / Newsletters</div>
+            <div class="kpi-card kpi-accent-green">
+                <div class="kpi-label">Low Priority</div>
+                <div class="kpi-number" style="color: #64748B;">{len(low_items)}</div>
+                <div class="kpi-subtext">Newsletters & Automated Logs</div>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-    st.markdown("<div style='height: 18px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
 
-    # Filter Controls
-    filter_choice = st.radio(
-        "Filter Messages by Priority:",
-        ["All Priorities", "URGENT Only", "IMPORTANT Only", "LOW_PRIORITY Only"],
+    # Priority Filter
+    filter_val = st.radio(
+        "Filter by Priority:",
+        ["All Messages", "URGENT Only", "IMPORTANT Only", "LOW_PRIORITY Only"],
         horizontal=True,
     )
 
-    filtered_emails = emails
-    if filter_choice == "URGENT Only":
-        filtered_emails = [e for e in emails if e.get("priority") == "URGENT"]
-    elif filter_choice == "IMPORTANT Only":
-        filtered_emails = [e for e in emails if e.get("priority") == "IMPORTANT"]
-    elif filter_choice == "LOW_PRIORITY Only":
-        filtered_emails = [e for e in emails if e.get("priority") == "LOW_PRIORITY"]
+    filtered = emails
+    if filter_val == "URGENT Only":
+        filtered = urgent_items
+    elif filter_val == "IMPORTANT Only":
+        filtered = important_items
+    elif filter_val == "LOW_PRIORITY Only":
+        filtered = low_items
 
-    for email_item in filtered_emails:
-        priority = email_item.get("priority", "IMPORTANT")
-        sender = email_item.get("sender_name") or email_item.get("sender", "Unknown")
-        subject = email_item.get("subject", "No subject")
-        date_str = email_item.get("date", "")
-        summary = email_item.get("summary", "")
-        actions = email_item.get("action_items", [])
-        draft_reply = email_item.get("draft_reply", "")
+    for em in filtered:
+        priority = em.get("priority", "IMPORTANT")
+        sender = em.get("sender_name") or em.get("sender", "Unknown Sender")
+        subject = em.get("subject", "No subject")
+        date_val = em.get("date", "")
+        summary = em.get("summary", "")
+        actions = em.get("action_items", [])
+        draft = em.get("draft_reply", "")
 
-        pill_class = "pill-urgent" if priority == "URGENT" else ("pill-important" if priority == "IMPORTANT" else "pill-low")
+        pill_cls = "pill-urgent" if priority == "URGENT" else ("pill-important" if priority == "IMPORTANT" else "pill-low")
+        avatar_letter = sender[0].upper() if sender else "M"
 
-        actions_html = ""
+        checklist_html = ""
         if actions:
-            items_li = "".join([f"<li>{act}</li>" for act in actions])
-            actions_html = f"""
-            <div class="action-box">
-                <b>📌 Action Items:</b>
-                <ul style="margin: 4px 0 0 0; padding-left: 20px;">{items_li}</ul>
+            li_tags = "".join([f"<li style='margin-bottom: 3px;'>{a}</li>" for a in actions])
+            checklist_html = f"""
+            <div class="action-checklist">
+                <b>📌 Action Items Required:</b>
+                <ul style="margin: 6px 0 0 0; padding-left: 18px;">{li_tags}</ul>
             </div>
             """
 
         st.markdown(
             f"""
-            <div class="content-card">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-                    <div>
-                        <span class="pill {pill_class}">● {priority}</span>
-                        <span style="font-size: 12px; color: #64748B;">{date_str}</span>
+            <div class="dashboard-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="pill-badge {pill_cls}">● {priority}</span>
+                        <span style="font-size: 12px; color: #64748B;">{date_val}</span>
                     </div>
-                    <span style="font-size: 13px; font-weight: 600; color: #334155;">{sender}</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="width: 24px; height: 24px; border-radius: 50%; background: #E2E8F0; color: #334155; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;">{avatar_letter}</span>
+                        <span style="font-size: 13.5px; font-weight: 700; color: #1E293B;">{sender}</span>
+                    </div>
                 </div>
-                <h4 style="margin: 4px 0 8px 0; font-size: 16px; font-weight: 700; color: #0F172A;">{subject}</h4>
-                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #334155; margin-bottom: 8px;">
+                <h4 style="margin: 6px 0 10px 0; font-size: 17px; font-weight: 700; color: #0F172A;">{subject}</h4>
+                <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 16px; font-size: 13.5px; color: #334155; line-height: 1.5;">
                     <b>Executive Summary:</b> {summary}
                 </div>
-                {actions_html}
+                {checklist_html}
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-        if draft_reply and draft_reply != "N/A":
+        if draft and draft != "N/A":
             with st.expander(f"✉️ View AI Auto-Drafted Reply to {sender}", expanded=False):
-                st.code(draft_reply, language="markdown")
-                st.caption("Click the copy icon on the top-right of the code box to paste into your email client!")
+                st.code(draft, language="markdown")
+                st.caption("Click the copy icon on the top right to copy into your email client.")
