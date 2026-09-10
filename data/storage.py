@@ -14,11 +14,13 @@ from typing import List, Dict, Any, Tuple, Optional
 logger = logging.getLogger("storage")
 
 DB_DIR = os.path.dirname(os.path.abspath(__file__))
+os.makedirs(DB_DIR, exist_ok=True)
 DB_PATH = os.path.join(DB_DIR, "executive_suite.db")
 
 
 def get_connection() -> sqlite3.Connection:
     """Returns a SQLite connection with row factory enabled."""
+    os.makedirs(DB_DIR, exist_ok=True)
     conn = sqlite3.connect(DB_PATH, timeout=15)
     conn.row_factory = sqlite3.Row
     return conn

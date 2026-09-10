@@ -13,22 +13,27 @@ load_dotenv()
 
 # --- Google Gemini API Configuration ---
 GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "").strip()
-# Default to current generation fast multimodal model
-GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash").strip()
+# Default to current generation fast multimodal model if empty or unset
+gemini_model_raw = os.getenv("GEMINI_MODEL", "").strip()
+GEMINI_MODEL: str = gemini_model_raw if gemini_model_raw else "gemini-2.5-flash"
 
 # --- Telegram Bot Configuration ---
 TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 TELEGRAM_CHAT_ID: str = os.getenv("TELEGRAM_CHAT_ID", "").strip()
 
 # --- Email IMAP Configuration ---
-IMAP_SERVER: str = os.getenv("IMAP_SERVER", "imap.gmail.com").strip()
-IMAP_PORT: int = int(os.getenv("IMAP_PORT", "993"))
+imap_server_raw = os.getenv("IMAP_SERVER", "").strip()
+IMAP_SERVER: str = imap_server_raw if imap_server_raw else "imap.gmail.com"
+
+imap_port_raw = os.getenv("IMAP_PORT", "").strip()
+IMAP_PORT: int = int(imap_port_raw) if imap_port_raw.isdigit() else 993
+
 IMAP_USER: str = os.getenv("IMAP_USER", "").strip()
 IMAP_PASSWORD: str = os.getenv("IMAP_PASSWORD", "").strip()
 
 # --- Freelance Job Feeds & Skills ---
 DEFAULT_SKILLS: List[str] = ["Python", "React", "FastAPI", "Web Scraping", "AI Agents", "Streamlit"]
-user_skills_raw = os.getenv("USER_SKILLS", "")
+user_skills_raw = os.getenv("USER_SKILLS", "").strip()
 USER_SKILLS: List[str] = (
     [skill.strip() for skill in user_skills_raw.split(",") if skill.strip()]
     if user_skills_raw
@@ -49,10 +54,11 @@ DEFAULT_HOLDINGS: List[Dict[str, Any]] = [
     {"ticker": "GOOGL", "buy_price": 165.0, "qty": 8},
 ]
 
-stock_holdings_raw = os.getenv("STOCK_HOLDINGS", "")
+stock_holdings_raw = os.getenv("STOCK_HOLDINGS", "").strip()
 if stock_holdings_raw:
     try:
-        STOCK_HOLDINGS: List[Dict[str, Any]] = json.loads(stock_holdings_raw)
+        parsed_holdings = json.loads(stock_holdings_raw)
+        STOCK_HOLDINGS: List[Dict[str, Any]] = parsed_holdings if isinstance(parsed_holdings, list) and len(parsed_holdings) > 0 else DEFAULT_HOLDINGS
     except Exception:
         STOCK_HOLDINGS = DEFAULT_HOLDINGS
 else:
