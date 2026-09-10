@@ -15,13 +15,30 @@
 
 ## 🌟 Executive Overview (Version 2.0)
 
-The **Personal Executive Suite 2.0** coordinates three autonomous background agents to automate daily high-leverage workflows with persistent SQLite storage and deduplication:
+The **Personal Executive Suite 2.0** is a Streamlit dashboard plus a scheduled Python runner. It coordinates three agents for daily high-leverage workflows and stores results in a local SQLite database with notification deduplication:
 
 | Agent | Mission & Automation | Data Provider | Free Tier Integration |
 | :--- | :--- | :--- | :--- |
 | 📩 **Email Triage Agent** | Scans unread inbox, categorizes `URGENT` / `IMPORTANT` / `LOW_PRIORITY`, extracts action items, auto-drafts replies, and tracks `handled` status in SQLite. | Gmail / Outlook IMAP | Python `imaplib` + Gemini API |
 | 📈 **Stock & Portfolio Agent** | Tracks holdings, P&L, triggers **+15% Profit Taking** or **-5% Gemini Stop-Loss/Rebound** analysis, renders **Plotly Candlestick Charts** with SMA20/SMA50, and scans **Live News Sentiment**. | Yahoo Finance | `yfinance` + Gemini API |
 | 💼 **Freelance Job Hunter** | Scrapes remote developer job feeds, scores **ROI (1-10)** and **Skill Match %**, generates **custom-tone proposals**, and tracks job pipeline (`Discovered` ➔ `Applied` ➔ `Saved`). | RemoteOK, WeWorkRemotely | `feedparser` + Gemini API |
+
+### How the system works
+
+```text
+Streamlit dashboard (app.py)
+          │
+          ├── EmailAgent ────── IMAP / Gemini ──────┐
+          ├── StockAgent ────── Yahoo Finance ─────┤
+          └── FreelanceAgent ─ RSS / Gemini ────────┤
+                                                     ▼
+                                      SQLite persistence and deduplication
+                                                     │
+                                                     ▼
+                                           Telegram executive briefing
+```
+
+The dashboard can run independently, while `python -m agents.runner` is intended for scheduled or headless execution.
 
 ---
 
@@ -130,6 +147,8 @@ streamlit run app.py
 ```
 Open your browser at `http://localhost:8501`.
 
+On first launch, the application initializes `data/executive_suite.db`. This file is intentionally ignored by Git and is the persistent store for email statuses, freelance pipeline states, portfolio snapshots, and saved settings.
+
 ---
 
 ### 4. Run the Background CLI Runner
@@ -155,6 +174,8 @@ The repository includes a GitHub Actions workflow in `.github/workflows/schedule
    - `IMAP_USER`: Your Gmail address.
    - `IMAP_PASSWORD`: Your 16-character Gmail App Password.
 3. You can manually test the runner anytime by navigating to the **Actions** tab on GitHub, selecting **Hourly 3-Agent Executive Runner**, and clicking **Run workflow**.
+
+The workflow also runs on pushes to `main`. It uses the repository's Actions secrets and does not persist the SQLite database between runners, so GitHub Actions runs are best suited to fetching data and sending notifications. Use the dashboard/Docker deployment when you need durable local history.
 
 ---
 
@@ -184,6 +205,36 @@ docker compose up -d
 docker compose logs -f
 ```
 
+The Compose setup mounts `./data` into the container so SQLite data survives container recreation. Create a local `.env` before starting the service:
+
+```bash
+cp .env.example .env
+docker compose up -d --build
+```
+
+## 🧪 Development and troubleshooting
+
+Compile-check the Python source without making network calls:
+
+```bash
+python -m compileall -q .
+```
+
+Run the headless workflow locally:
+
+```bash
+python -m agents.runner
+```
+
+If credentials are missing, the agents use built-in mock data and Telegram logs a simulated message. This is useful for checking the UI, but it is not a confirmation that IMAP, Gemini, Yahoo Finance, RSS, or Telegram credentials are valid.
+
+Common causes of startup or runner failures:
+
+- Dependencies have not been installed: run `pip install -r requirements.txt`.
+- Gmail rejects the login: use an App Password with IMAP enabled; do not use the account password.
+- External providers rate-limit or block requests: the stock and freelance agents will use fallback data where supported.
+- The dashboard is running in a container but `data/` is not writable: ensure the mounted directory is writable by the container user.
+
 ---
 
 ## 🔒 Security Best Practices
@@ -191,6 +242,17 @@ docker compose logs -f
 - **Never commit your `.env` file!** The `.gitignore` file is pre-configured to ignore `.env`, virtual environments, and caches.
 - **Gmail Security:** Always use an [App Password](https://myaccount.google.com/apppasswords) with 2-Factor Authentication enabled. Never use your main Google account password.
 - **IMAP Read-Only Mode:** The email agent connects with `readonly=True` to ensure it never deletes, alters, or marks emails as read without your explicit consent.
+- **Protect the dashboard:** The default Docker/Streamlit port is `8501`. Keep it behind a trusted network, reverse proxy, VPN, or firewall if it is not strictly local.
+- **XSRF setting:** The included Streamlit configuration disables XSRF protection for simple local/container deployments. Do not expose the dashboard directly to the public internet without reviewing and hardening this setting.
+- **External content:** Job feeds, email content, and market news are displayed in the UI and included in notifications. Treat generated summaries and proposals as untrusted output and review them before sending or acting on them.
+- **Financial disclaimer:** Stock signals are informational automation, not financial advice. Verify prices, fundamentals, and risk independently before trading.
+
+## Current limitations
+
+- There is no automated test suite yet; external integrations require live network access and credentials to validate end-to-end.
+- SQLite is a local single-file store. It is appropriate for one user and one deployment, not concurrent multi-user operation.
+- GitHub Actions runners are ephemeral, so their SQLite changes disappear after each job.
+- Mock data is designed for demos and should never be interpreted as live account, market, or job-feed data.
 
 ---
 
