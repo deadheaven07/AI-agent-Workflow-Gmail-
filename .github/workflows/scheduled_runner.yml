@@ -26,15 +26,16 @@ jobs:
 
       - name: Execute Autonomous Agent Suite
         env:
+          PYTHONPATH: .
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL || 'gemini-2.5-flash' }}
+          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          IMAP_SERVER: ${{ secrets.IMAP_SERVER || 'imap.gmail.com' }}
-          IMAP_PORT: ${{ secrets.IMAP_PORT || '993' }}
+          IMAP_SERVER: ${{ secrets.IMAP_SERVER }}
+          IMAP_PORT: ${{ secrets.IMAP_PORT }}
           IMAP_USER: ${{ secrets.IMAP_USER }}
           IMAP_PASSWORD: ${{ secrets.IMAP_PASSWORD }}
-          USER_SKILLS: ${{ secrets.USER_SKILLS || 'Python,React,FastAPI,Web Scraping,AI Agents' }}
-          STOCK_HOLDINGS: ${{ secrets.STOCK_HOLDINGS || '[{"ticker":"AAPL","buy_price":170.0,"qty":10},{"ticker":"NVDA","buy_price":110.0,"qty":15},{"ticker":"MSFT","buy_price":400.0,"qty":5}]' }}
+          USER_SKILLS: ${{ secrets.USER_SKILLS }}
+          STOCK_HOLDINGS: ${{ secrets.STOCK_HOLDINGS }}
         run: |
           python -m agents.runner

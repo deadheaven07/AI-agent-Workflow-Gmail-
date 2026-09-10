@@ -7,6 +7,7 @@ Includes clean fallback mocks if credentials are not configured.
 """
 
 import email
+import email.message
 from email.header import decode_header
 import imaplib
 import json
