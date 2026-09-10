@@ -1,0 +1,40 @@
+name: Hourly 3-Agent Executive Runner
+
+on:
+  schedule:
+    # Run at the top of every hour UTC (100% Free GitHub Actions cron)
+    - cron: '0 * * * *'
+  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+
+jobs:
+  run-executive-suite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Execute Autonomous Agent Suite
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL || 'gemini-2.5-flash' }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          IMAP_SERVER: ${{ secrets.IMAP_SERVER || 'imap.gmail.com' }}
+          IMAP_PORT: ${{ secrets.IMAP_PORT || '993' }}
+          IMAP_USER: ${{ secrets.IMAP_USER }}
+          IMAP_PASSWORD: ${{ secrets.IMAP_PASSWORD }}
+          USER_SKILLS: ${{ secrets.USER_SKILLS || 'Python,React,FastAPI,Web Scraping,AI Agents' }}
+          STOCK_HOLDINGS: ${{ secrets.STOCK_HOLDINGS || '[{"ticker":"AAPL","buy_price":170.0,"qty":10},{"ticker":"NVDA","buy_price":110.0,"qty":15},{"ticker":"MSFT","buy_price":400.0,"qty":5}]' }}
+        run: |
+          python -m agents.runner
