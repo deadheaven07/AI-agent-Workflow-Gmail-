@@ -100,7 +100,7 @@ class FreelanceAgent:
     """Scrapes RSS feeds, scores freelance jobs with Gemini LLM, and creates proposals."""
 
     def __init__(self, user_skills: Optional[List[str]] = None):
-        self.user_skills = user_skills or config.USER_SKILLS
+        self.user_skills = user_skills or config.get_active_skills()
         self.feeds = config.FREELANCE_RSS_FEEDS
 
     def fetch_raw_feed_jobs(self, limit_per_feed: int = 5) -> List[Dict[str, Any]]:
@@ -264,3 +264,40 @@ No markdown fences, no explanatory text, return pure JSON only.
         # Sort by highest ROI first
         evaluated.sort(key=lambda x: x.get("roi_score", 0), reverse=True)
         return evaluated
+
+    def generate_proposal_with_tone(self, job: Dict[str, Any], tone: str = "Executive Consultant") -> str:
+        """Regenerates a tailored proposal with user-selected tone style."""
+        if not config.is_gemini_configured():
+            return (
+                f"Hi,\n\n"
+                f"I am writing regarding '{job.get('title')}'. As an experienced engineer skilled in "
+                f"{', '.join(self.user_skills[:3])}, I can deliver robust, scalable results on your schedule.\n\n"
+                f"Let's connect to discuss deliverables."
+            )
+
+        try:
+            from google import genai
+            client = genai.Client(api_key=config.GEMINI_API_KEY)
+            prompt = f"""
+Write a freelance job application proposal for the following job:
+Title: {job.get('title')}
+Description: {job.get('summary')}
+Candidate Skills: {', '.join(self.user_skills)}
+
+Desired Tone: {tone}
+Tone guidelines:
+- "Executive Consultant": Authoritative, strategic, focusing on business impact, ROI, and architectural excellence.
+- "Ultra-Concise & Direct": 3-4 bullet points, zero fluff, direct proof of capability.
+- "High-Impact Pitch": Enthusiastic, fast-moving, focusing on speedy execution and modern stack expertise.
+
+Write a clean, compelling 3-paragraph or bulleted pitch ready to send. Do not include placeholder brackets like [Your Name]. Sign off as 'Senior AI & Full-Stack Engineer'.
+"""
+            response = client.models.generate_content(
+                model=config.GEMINI_MODEL,
+                contents=prompt,
+            )
+            return response.text.strip()
+        except Exception as exc:
+            logger.warning("Failed generating tone-specific proposal (%s); returning current proposal.", exc)
+            return job.get("proposal", "")
+

@@ -155,7 +155,7 @@ class StockAgent:
     """Monitors stock portfolio holdings and generates actionable buy/hold/sell signals."""
 
     def __init__(self, holdings: Optional[List[Dict[str, Any]]] = None):
-        self.holdings = holdings if holdings is not None else config.STOCK_HOLDINGS
+        self.holdings = holdings if holdings is not None else config.get_active_holdings()
 
     def analyze_with_gemini(
         self, ticker: str, buy_price: float, current_price: float, pnl_pct: float
@@ -328,3 +328,55 @@ Be succinct, rational, and direct. Max 20 words.
         except Exception as general_err:
             logger.error("Stock portfolio analysis failed (%s); falling back to mock.", general_err)
             return get_mock_stock_data(self.holdings)
+
+    def fetch_stock_history(self, ticker: str, period: str = "3mo"):
+        """Fetches historical OHLCV data for technical candlestick charting."""
+        try:
+            import yfinance as yf
+            t = yf.Ticker(ticker)
+            df = t.history(period=period)
+            if df is not None and not df.empty:
+                df.reset_index(inplace=True)
+                return df
+        except Exception as exc:
+            logger.warning("Error fetching history for %s: %s", ticker, exc)
+        return None
+
+    def fetch_stock_news(self, ticker: str, limit: int = 4) -> List[Dict[str, Any]]:
+        """Fetches latest market news for a ticker and evaluates sentiment."""
+        try:
+            import yfinance as yf
+            t = yf.Ticker(ticker)
+            news_items = t.news or []
+            results = []
+            for item in news_items[:limit]:
+                # In newer yfinance, news items can be in a dict or nested
+                title = item.get("title") or item.get("headline", "")
+                publisher = item.get("publisher", "Market Wire")
+                link = item.get("link") or item.get("url", "#")
+                pub_time = item.get("providerPublishTime")
+                date_str = (
+                    datetime.fromtimestamp(pub_time).strftime("%b %d, %H:%M")
+                    if pub_time
+                    else "Recent"
+                )
+
+                sentiment = "NEUTRAL"
+                lower_title = title.lower()
+                if any(w in lower_title for w in ["surge", "jump", "record", "profit", "beat", "rally", "growth", "high", "upgrade", "soars"]):
+                    sentiment = "BULLISH"
+                elif any(w in lower_title for w in ["drop", "fall", "miss", "loss", "plunge", "down", "downgrade", "probe", "investigation", "slump"]):
+                    sentiment = "BEARISH"
+
+                results.append({
+                    "title": title,
+                    "publisher": publisher,
+                    "link": link,
+                    "date": date_str,
+                    "sentiment": sentiment,
+                })
+            return results
+        except Exception as exc:
+            logger.warning("Error fetching news for %s: %s", ticker, exc)
+            return []
+

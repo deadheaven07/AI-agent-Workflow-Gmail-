@@ -70,12 +70,39 @@ def run_all_agents() -> int:
     high_roi_jobs = [j for j in evaluated_jobs if j.get("roi_score", 0) >= 8.0]
     logger.info("Evaluated %d opportunities (%d High-ROI >= 8.0)", len(evaluated_jobs), len(high_roi_jobs))
 
-    # 4. Dispatch Consolidated Telegram Briefing
+    # 4. Data Persistence & Deduplication
+    logger.info("--> [Persistence] Storing snapshots & deduplicating alerts...")
+    try:
+        from data.storage import (
+            save_emails,
+            save_jobs,
+            log_portfolio_snapshot,
+            filter_and_mark_unnotified,
+        )
+        save_emails(triaged_emails)
+        save_jobs(evaluated_jobs)
+        log_portfolio_snapshot(portfolio_data)
+
+        # Deduplicate alerts
+        new_emails, new_stocks, new_jobs = filter_and_mark_unnotified(
+            urgent_emails, stock_alerts, high_roi_jobs
+        )
+        logger.info(
+            "Deduplication: %d new email alerts, %d stock alerts, %d new job alerts",
+            len(new_emails),
+            len(new_stocks),
+            len(new_jobs),
+        )
+    except Exception as db_err:
+        logger.warning("Storage/deduplication exception (%s); proceeding with all alerts.", db_err)
+        new_emails, new_stocks, new_jobs = urgent_emails, stock_alerts, high_roi_jobs
+
+    # 5. Dispatch Consolidated Telegram Briefing
     logger.info("--> Dispatching Executive Briefing via Telegram...")
     success = send_executive_alert(
-        email_alerts=urgent_emails,
-        stock_alerts=stock_alerts,
-        job_alerts=high_roi_jobs,
+        email_alerts=new_emails,
+        stock_alerts=new_stocks,
+        job_alerts=new_jobs,
     )
 
     duration = (datetime.now() - start_time).total_seconds()

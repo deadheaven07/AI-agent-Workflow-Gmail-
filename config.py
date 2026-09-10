@@ -82,3 +82,28 @@ def is_email_configured() -> bool:
         and not IMAP_USER.startswith("your_")
         and not IMAP_PASSWORD.startswith("your_")
     )
+
+
+def get_active_holdings() -> List[Dict[str, Any]]:
+    """Retrieves holdings from SQLite persistence layer or defaults to config."""
+    try:
+        from data.storage import get_saved_holdings
+        saved = get_saved_holdings()
+        if saved:
+            return saved
+    except Exception:
+        pass
+    return STOCK_HOLDINGS
+
+
+def get_active_skills() -> List[str]:
+    """Retrieves candidate skills from SQLite persistence layer or defaults to config."""
+    try:
+        from data.storage import get_saved_skills
+        saved = get_saved_skills()
+        if saved:
+            return saved
+    except Exception:
+        pass
+    return USER_SKILLS
+

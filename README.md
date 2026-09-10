@@ -13,29 +13,30 @@
 
 ---
 
-## 🌟 Executive Overview
+## 🌟 Executive Overview (Version 2.0)
 
-The **Personal Executive Suite** coordinates three autonomous background agents to automate daily high-leverage workflows:
+The **Personal Executive Suite 2.0** coordinates three autonomous background agents to automate daily high-leverage workflows with persistent SQLite storage and deduplication:
 
 | Agent | Mission & Automation | Data Provider | Free Tier Integration |
 | :--- | :--- | :--- | :--- |
-| 📩 **Email Triage Agent** | Scans unread inbox, categorizes `URGENT` / `IMPORTANT` / `LOW_PRIORITY`, extracts action items, and auto-drafts replies. | Gmail / Outlook IMAP | Python `imaplib` + Gemini API |
-| 📈 **Stock & Portfolio Agent** | Tracks holdings, P&L, triggers **+15% Profit Taking** or **-5% Gemini Stop-Loss/Rebound** analysis, and scans high dividends. | Yahoo Finance | `yfinance` + Gemini API |
-| 💼 **Freelance Job Hunter** | Scrapes remote developer job feeds, scores **ROI (1-10)** and **Skill Match %**, and writes custom proposals for leads (ROI ≥ 8.0). | RemoteOK, WeWorkRemotely | `feedparser` + Gemini API |
+| 📩 **Email Triage Agent** | Scans unread inbox, categorizes `URGENT` / `IMPORTANT` / `LOW_PRIORITY`, extracts action items, auto-drafts replies, and tracks `handled` status in SQLite. | Gmail / Outlook IMAP | Python `imaplib` + Gemini API |
+| 📈 **Stock & Portfolio Agent** | Tracks holdings, P&L, triggers **+15% Profit Taking** or **-5% Gemini Stop-Loss/Rebound** analysis, renders **Plotly Candlestick Charts** with SMA20/SMA50, and scans **Live News Sentiment**. | Yahoo Finance | `yfinance` + Gemini API |
+| 💼 **Freelance Job Hunter** | Scrapes remote developer job feeds, scores **ROI (1-10)** and **Skill Match %**, generates **custom-tone proposals**, and tracks job pipeline (`Discovered` ➔ `Applied` ➔ `Saved`). | RemoteOK, WeWorkRemotely | `feedparser` + Gemini API |
 
 ---
 
-## 🎨 UI & Design System (Light Mode)
+## 🎨 UI & Design System (Light Mode 2.0)
 
-- **Theme:** Clean, modern Light Mode aesthetic (`#F8F9FA` canvas, crisp `#FFFFFF` cards, `#E2E8F0` borders, subtle box shadows).
+- **Theme:** Clean, modern Light Mode aesthetic (`#F8FAFC` canvas, crisp `#FFFFFF` cards, `#E2E8F0` borders, subtle box shadows, Plus Jakarta Sans & Outfit typography).
 - **Sticky Left Sidebar:** Animated CSS `@keyframes` pulsing glow indicators for all 3 agents:
   - 📩 **Email Agent** — [Status: 🟢 Active / Scanning] (Soft Blue Pulse)
   - 📈 **Stock Agent** — [Status: 🟢 Active / Monitoring] (Soft Green Pulse)
   - 💼 **Freelance Agent** — [Status: 🟢 Active / Searching] (Soft Amber Pulse)
-- **Interactive Tabs:**
-  1. **💼 Freelance Opportunities:** Filterable cards with ROI score pills, budget, match %, and 1-click copy proposal boxes.
-  2. **📈 Stock & Portfolio Intelligence:** Total portfolio value, cost basis, unrealized P&L ($ / %), profit/loss signals, holdings table, and dividend watchlist.
-  3. **📩 Email Triage & Digest:** Priority filters (`URGENT`, `IMPORTANT`, `LOW_PRIORITY`), summaries, action checklists, and ready-to-send draft replies.
+  - ⚙️ **In-App Skill Editor:** Add or modify skills dynamically in the UI.
+- **Interactive Multi-Agent Tabs:**
+  1. **💼 Freelance Pipeline:** Filterable cards with ROI score pills, budget, match %, 3-tone AI proposal re-crafter, and pipeline stage buttons (`Applied`, `Saved`, `Archive`).
+  2. **📈 Stock Terminal:** Interactive **Plotly Candlestick Chart** with 20-day & 50-day moving averages and volume, **Live News Sentiment Radar** (`Bullish`/`Bearish`/`Neutral`), **In-App Portfolio Position Editor**, and historical equity curve.
+  3. **📩 Email Action Inbox:** Priority filters (`URGENT`, `IMPORTANT`, `LOW_PRIORITY`, `Handled`), summary cards, action checklists, and one-click `Mark Handled` action buttons.
 
 ---
 
@@ -45,15 +46,22 @@ The **Personal Executive Suite** coordinates three autonomous background agents 
 .
 ├── .env.example                     # Environment template with setup instructions
 ├── .gitignore                       # Clean gitignore excluding secrets and virtual environments
+├── .streamlit/                      # Streamlit custom theme configuration
+│   └── config.toml
+├── Dockerfile                       # Production container setup
+├── docker-compose.yml               # 1-command Docker deployment
 ├── requirements.txt                 # Pinned dependencies
 ├── config.py                        # Centralized typed configuration & secret loader
-├── app.py                           # Main Streamlit Light-Theme Dashboard
+├── app.py                           # Main Streamlit Light-Theme Dashboard (V2)
 ├── agents/
 │   ├── __init__.py
 │   ├── email_agent.py               # Gmail IMAP fetcher, Gemini categorization & reply drafter
-│   ├── freelance_agent.py           # RemoteOK/WWR scraper, Gemini ROI scorer & proposal generator
-│   ├── stock_agent.py               # yfinance market data, P&L logic & Gemini risk evaluator
-│   └── runner.py                    # Consolidated CLI runner for GitHub Actions & cron
+│   ├── freelance_agent.py           # RemoteOK/WWR scraper, Gemini ROI scorer & tone proposal generator
+│   ├── stock_agent.py               # yfinance data, Candlestick charts, News sentiment & Gemini signals
+│   └── runner.py                    # Consolidated CLI runner with SQLite deduplication
+├── data/
+│   ├── __init__.py
+│   └── storage.py                   # SQLite persistence, snapshot logging & deduplication engine
 ├── notifications/
 │   ├── __init__.py
 │   └── telegram_bot.py              # Telegram alert dispatcher with HTML formatting & mock fallback
@@ -162,6 +170,19 @@ The repository includes a GitHub Actions workflow in `.github/workflows/schedule
 3. Select your repository `deadheaven07/AI-agent-Workflow-Gmail-` and set the main file path to `app.py`.
 4. In **Advanced settings**, paste your `.env` variables into the **Secrets** section.
 5. Click **Deploy**!
+
+## 🐳 One-Command Deployment with Docker
+
+You can spin up the entire suite in a clean container with persistent SQLite storage:
+
+```bash
+# Build and run container in background
+docker compose up -d
+
+# View live dashboard at http://localhost:8501
+# View logs:
+docker compose logs -f
+```
 
 ---
 
