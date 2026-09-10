@@ -4,6 +4,9 @@ on:
   schedule:
     # Run at the top of every hour UTC (100% Free GitHub Actions cron)
     - cron: '0 * * * *'
+  push:
+    branches:
+      - main
   workflow_dispatch: # Allows manual trigger from GitHub Actions tab
 
 jobs:
